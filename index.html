@@ -408,9 +408,9 @@
 
 <script>
 /* ==================================================
-   CONFIGURACIÓN — cambiá acá el mail de destino
+   CONFIGURACIÓN — Web3Forms Access Key
    ================================================== */
-const EMAIL_DESTINO = "agustin.almiron@unab.edu.ar";
+const WEB3FORMS_KEY = "6103c286-d5c2-4edd-82e7-23704915c2e7";
 
 const STEP_NAMES = ["Contacto","Tu marca","Tu cliente","Diseño"];
 let current = 1;
@@ -545,23 +545,24 @@ async function enviar(){
   const data = recolectar();
   btnNext.disabled=true; btnNext.textContent='Enviando...';
   const payload={
-    ...data,
-    _subject:`✱ Nuevo cuestionario estratégico — ${data['Nombre de la marca']||data['Nombre completo']||''}`,
-    _template:'table',
-    _captcha:'false'
+    access_key: WEB3FORMS_KEY,
+    subject: `✱ Nuevo cuestionario estratégico — ${data['Nombre de la marca']||data['Nombre completo']||''}`,
+    from_name: 'Cuestionario Estratégico (al)²cuadrado',
+    ...data
   };
   try{
-    const res=await fetch(`https://formsubmit.co/ajax/${EMAIL_DESTINO}`,{
+    const res=await fetch('https://api.web3forms.com/submit',{
       method:'POST',
       headers:{'Content-Type':'application/json','Accept':'application/json'},
       body:JSON.stringify(payload)
     });
-    if(!res.ok) throw new Error('fail');
+    const result=await res.json();
+    if(!result.success) throw new Error(result.message||'fail');
     mostrarExito();
   }catch(e){
     /* Plan B: abre el correo con todo cargado */
     const cuerpo=Object.entries(data).map(([k,v])=>`${k}:\n${v}`).join('\n\n');
-    window.location.href=`mailto:${EMAIL_DESTINO}?subject=${encodeURIComponent('Cuestionario estratégico')}&body=${encodeURIComponent(cuerpo)}`;
+    window.location.href=`mailto:agustin.almiron@unab.edu.ar?subject=${encodeURIComponent('Cuestionario estratégico')}&body=${encodeURIComponent(cuerpo)}`;
     mostrarExito();
   }
 }
