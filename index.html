@@ -1,578 +1,1004 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cuestionario Estratégico — (al)²cuadrado</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  /* ============ CONFIG VISUAL ============ */
-  :root{
-    --crema:#FFFBEF;
-    --negro:#111111;
-    --gris:#8a8578;
-    --borde:#111111;
-    --radius:14px;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  html{scroll-behavior:smooth}
-  body{
-    font-family:'Poppins',sans-serif;
-    background:var(--crema);
-    color:var(--negro);
-    min-height:100vh;
-    overflow-x:hidden;
-  }
-  /* ============ HEADER ============ */
-  header{
-    background:var(--negro);
-    color:var(--crema);
-    display:flex;justify-content:space-between;align-items:center;
-    padding:22px 32px;
-  }
-  .logo{font-size:22px;font-weight:600;letter-spacing:-0.5px}
-  .logo sup{font-size:10px}
-  .tagline{font-size:11px;letter-spacing:2px;font-weight:300}
-  /* ============ LAYOUT ============ */
-  .wrap{max-width:680px;margin:0 auto;padding:40px 22px 90px}
-  .hero{text-align:center;margin:24px 0 36px}
-  .hero .brand-title{font-size:clamp(28px,6vw,44px);font-weight:600;letter-spacing:-1px}
-  .hero .brand-title .bracket{font-weight:300}
-  .hero p{color:var(--gris);font-size:14px;margin-top:10px;font-weight:300}
-  /* progreso */
-  .progress{margin:0 0 34px}
-  .progress-track{height:4px;background:rgba(17,17,17,.12);border-radius:99px;overflow:hidden}
-  .progress-fill{height:100%;background:var(--negro);width:20%;transition:width .4s ease;border-radius:99px}
-  .progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--gris);margin-top:8px}
-  /* pasos */
-  .step{display:none}
-  .step.active{display:block;animation:fade .35s ease}
-  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  /* entrada escalonada de los campos */
-  .step.active .field,.step.active h2,.step.active .sub{
-    animation:slideUp .55s cubic-bezier(.22,1,.36,1) both;
-  }
-  .step.active h2{animation-delay:.02s}
-  .step.active .sub{animation-delay:.08s}
-  .step.active .field:nth-of-type(1){animation-delay:.12s}
-  .step.active .field:nth-of-type(2){animation-delay:.18s}
-  .step.active .field:nth-of-type(3){animation-delay:.24s}
-  .step.active .field:nth-of-type(4){animation-delay:.30s}
-  .step.active .field:nth-of-type(5){animation-delay:.36s}
-  .step.active .field:nth-of-type(6){animation-delay:.42s}
-  @keyframes slideUp{
-    from{opacity:0;transform:translateY(22px)}
-    to{opacity:1;transform:none}
-  }
-  @keyframes pop{
-    0%{transform:scale(1)}
-    45%{transform:scale(1.08)}
-    100%{transform:scale(1)}
-  }
-  @media (prefers-reduced-motion:reduce){
-    *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
-  }
-  .step h2{font-size:26px;font-weight:600;margin-bottom:4px;letter-spacing:-.5px}
-  .step h2 .ast{font-weight:700}
-  .step .sub{color:var(--gris);font-size:13.5px;font-weight:300;margin-bottom:26px}
-  .field{margin-bottom:18px}
-  label.q{display:block;font-size:14px;font-weight:500;margin-bottom:8px}
-  label.q small{color:var(--gris);font-weight:300}
-  input[type=text],input[type=email],input[type=tel],textarea{
-    width:100%;
-    background:transparent;
-    border:1.5px solid var(--borde);
-    border-radius:var(--radius);
-    padding:13px 16px;
-    font-family:inherit;font-size:14px;color:var(--negro);
-    outline:none;transition:box-shadow .2s;
-  }
-  input:focus,textarea:focus{box-shadow:0 0 0 3px rgba(17,17,17,.12)}
-  textarea{resize:vertical;min-height:84px}
-  ::placeholder{color:#b5af9f}
-  /* chips */
-  .chips{display:flex;flex-wrap:wrap;gap:10px}
-  .chip{
-    border:1.5px solid var(--negro);
-    border-radius:999px;
-    padding:10px 18px;
-    font-size:13.5px;font-weight:400;
-    cursor:pointer;user-select:none;
-    background:transparent;color:var(--negro);
-    transition:all .15s ease;
-    font-family:inherit;
-  }
-  .chip:hover{transform:translateY(-1px)}
-  .chip:active{transform:scale(.94)}
-  .chip.selected{background:var(--negro);color:var(--crema);font-weight:500;animation:pop .3s ease}
-  /* arquetipos */
-  .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media(max-width:520px){.cards{grid-template-columns:1fr}}
-  .card{
-    border:1.5px solid var(--negro);
-    border-radius:var(--radius);
-    padding:14px 16px;cursor:pointer;user-select:none;
-    transition:all .15s ease;background:transparent;
-    text-align:left;font-family:inherit;color:var(--negro);
-  }
-  .card:hover{transform:translateY(-2px)}
-  .card.selected{background:var(--negro);color:var(--crema)}
-  .card .cname{font-weight:600;font-size:14px}
-  .card .cdesc{font-size:12px;font-weight:300;margin-top:3px;opacity:.75}
-  .card .cej{font-size:10.5px;letter-spacing:1.5px;margin-top:6px;opacity:.6;text-transform:uppercase}
-  /* escalas 3 opciones */
-  .scale{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
-  .scale .opt{
-    border:1.5px solid var(--negro);border-radius:999px;
-    padding:9px 6px;text-align:center;font-size:13px;
-    cursor:pointer;user-select:none;transition:all .15s;
-    background:transparent;color:var(--negro);font-family:inherit;
-  }
-  .scale .opt:active{transform:scale(.94)}
-  .scale .opt.selected{background:var(--negro);color:var(--crema);font-weight:500;animation:pop .3s ease}
-  /* nav */
-  .nav{display:flex;justify-content:space-between;gap:12px;margin-top:34px}
-  .btn{
-    font-family:inherit;font-size:14px;font-weight:500;
-    border-radius:999px;padding:14px 34px;cursor:pointer;
-    border:1.5px solid var(--negro);transition:all .15s;
-  }
-  .btn-next{background:var(--negro);color:var(--crema)}
-  .btn-next:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(17,17,17,.25)}
-  .btn-back{background:transparent;color:var(--negro)}
-  .btn-back:hover{background:rgba(17,17,17,.06)}
-  .btn:disabled{opacity:.5;cursor:wait}
-  .error-msg{color:#b3261e;font-size:12.5px;margin-top:6px;display:none}
-  .field.invalid input,.field.invalid textarea{border-color:#b3261e}
-  .field.invalid .error-msg{display:block}
-  /* éxito */
-  .success{text-align:center;padding:60px 10px;display:none;animation:fade .4s ease}
-  .success .big{font-size:52px;display:inline-block;animation:spinIn .8s cubic-bezier(.22,1,.36,1) both}
-  .success h2{font-size:30px;margin:14px 0 8px;animation:slideUp .6s .3s cubic-bezier(.22,1,.36,1) both}
-  .success p{color:var(--gris);font-weight:300;font-size:14.5px;animation:slideUp .6s .45s cubic-bezier(.22,1,.36,1) both}
-  @keyframes spinIn{
-    from{opacity:0;transform:rotate(-180deg) scale(.3)}
-    to{opacity:1;transform:rotate(0) scale(1)}
-  }
-  footer{
-    background:var(--negro);color:var(--crema);
-    text-align:center;padding:18px;font-size:11px;letter-spacing:2px;font-weight:300;
-    position:fixed;bottom:0;left:0;right:0;
-  }
-  .otro-input{margin-top:10px;display:none}
-  .otro-input.visible{display:block}
 
-  /* ============ MOBILE ============ */
-  @media (max-width:600px){
-    header{padding:16px 20px}
-    .logo{font-size:18px}
-    .tagline{display:none}
-    .wrap{padding:26px 18px 40px}
-    .hero{margin:10px 0 26px}
-    .hero .brand-title{font-size:26px}
-    .hero p{font-size:12.5px}
-    .step h2{font-size:22px}
-    .step .sub{font-size:12.5px;margin-bottom:20px}
-    /* inputs más cómodos al tacto y sin zoom automático de iOS (16px) */
-    input[type=text],input[type=email],input[type=tel],textarea{
-      font-size:16px;padding:14px 16px;border-radius:12px;
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cuestionario Estratégico — (al)²cuadrado</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ============ CONFIG VISUAL ============ */
+    :root {
+      --crema: #FFFBEF;
+      --negro: #111111;
+      --gris: #8a8578;
+      --borde: #111111;
+      --radius: 14px;
     }
-    .chip{padding:12px 18px;font-size:14px}
-    .scale{gap:6px}
-    .scale .opt{padding:11px 4px;font-size:12px}
-    /* botones fijos abajo, siempre a mano */
-    .nav{
-      margin-top:28px;
-      padding:10px 0;
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent
     }
-    .btn{flex:1;padding:15px 10px;font-size:15px}
-    .btn-next{box-shadow:0 6px 20px rgba(17,17,17,.28)}
-    footer{position:static}
-    body{padding-bottom:0}
-  }
-</style>
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--crema);
+      color: var(--negro);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ============ HEADER ============ */
+    header {
+      background: var(--negro);
+      color: var(--crema);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 32px;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.5px
+    }
+
+    .logo sup {
+      font-size: 10px
+    }
+
+    .tagline {
+      font-size: 11px;
+      letter-spacing: 2px;
+      font-weight: 300
+    }
+
+    /* ============ LAYOUT ============ */
+    .wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 40px 22px 90px
+    }
+
+    .hero {
+      text-align: center;
+      margin: 24px 0 36px
+    }
+
+    .hero .brand-title {
+      font-size: clamp(28px, 6vw, 44px);
+      font-weight: 600;
+      letter-spacing: -1px
+    }
+
+    .hero .brand-title .bracket {
+      font-weight: 300
+    }
+
+    .hero p {
+      color: var(--gris);
+      font-size: 14px;
+      margin-top: 10px;
+      font-weight: 300
+    }
+
+    /* progreso */
+    .progress {
+      margin: 0 0 34px
+    }
+
+    .progress-track {
+      height: 4px;
+      background: rgba(17, 17, 17, .12);
+      border-radius: 99px;
+      overflow: hidden
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--negro);
+      width: 20%;
+      transition: width .4s ease;
+      border-radius: 99px
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--gris);
+      margin-top: 8px
+    }
+
+    /* pasos */
+    .step {
+      display: none
+    }
+
+    .step.active {
+      display: block;
+      animation: fade .35s ease
+    }
+
+    @keyframes fade {
+      from {
+        opacity: 0;
+        transform: translateY(8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    /* entrada escalonada de los campos */
+    .step.active .field,
+    .step.active h2,
+    .step.active .sub {
+      animation: slideUp .55s cubic-bezier(.22, 1, .36, 1) both;
+    }
+
+    .step.active h2 {
+      animation-delay: .02s
+    }
+
+    .step.active .sub {
+      animation-delay: .08s
+    }
+
+    .step.active .field:nth-of-type(1) {
+      animation-delay: .12s
+    }
+
+    .step.active .field:nth-of-type(2) {
+      animation-delay: .18s
+    }
+
+    .step.active .field:nth-of-type(3) {
+      animation-delay: .24s
+    }
+
+    .step.active .field:nth-of-type(4) {
+      animation-delay: .30s
+    }
+
+    .step.active .field:nth-of-type(5) {
+      animation-delay: .36s
+    }
+
+    .step.active .field:nth-of-type(6) {
+      animation-delay: .42s
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(22px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes pop {
+      0% {
+        transform: scale(1)
+      }
+
+      45% {
+        transform: scale(1.08)
+      }
+
+      100% {
+        transform: scale(1)
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important
+      }
+    }
+
+    .step h2 {
+      font-size: 26px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      letter-spacing: -.5px
+    }
+
+    .step h2 .ast {
+      font-weight: 700
+    }
+
+    .step .sub {
+      color: var(--gris);
+      font-size: 13.5px;
+      font-weight: 300;
+      margin-bottom: 26px
+    }
+
+    .field {
+      margin-bottom: 18px
+    }
+
+    label.q {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px
+    }
+
+    label.q small {
+      color: var(--gris);
+      font-weight: 300
+    }
+
+    input[type=text],
+    input[type=email],
+    input[type=tel],
+    textarea {
+      width: 100%;
+      background: transparent;
+      border: 1.5px solid var(--borde);
+      border-radius: var(--radius);
+      padding: 13px 16px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--negro);
+      outline: none;
+      transition: box-shadow .2s;
+    }
+
+    input:focus,
+    textarea:focus {
+      box-shadow: 0 0 0 3px rgba(17, 17, 17, .12)
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 84px
+    }
+
+    ::placeholder {
+      color: #b5af9f
+    }
+
+    /* chips */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px
+    }
+
+    .chip {
+      border: 1.5px solid var(--negro);
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 13.5px;
+      font-weight: 400;
+      cursor: pointer;
+      user-select: none;
+      background: transparent;
+      color: var(--negro);
+      transition: all .15s ease;
+      font-family: inherit;
+    }
+
+    .chip:hover {
+      transform: translateY(-1px)
+    }
+
+    .chip:active {
+      transform: scale(.94)
+    }
+
+    .chip.selected {
+      background: var(--negro);
+      color: var(--crema);
+      font-weight: 500;
+      animation: pop .3s ease
+    }
+
+    /* arquetipos */
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px
+    }
+
+    @media(max-width:520px) {
+      .cards {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .card {
+      border: 1.5px solid var(--negro);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      cursor: pointer;
+      user-select: none;
+      transition: all .15s ease;
+      background: transparent;
+      text-align: left;
+      font-family: inherit;
+      color: var(--negro);
+    }
+
+    .card:hover {
+      transform: translateY(-2px)
+    }
+
+    .card.selected {
+      background: var(--negro);
+      color: var(--crema)
+    }
+
+    .card .cname {
+      font-weight: 600;
+      font-size: 14px
+    }
+
+    .card .cdesc {
+      font-size: 12px;
+      font-weight: 300;
+      margin-top: 3px;
+      opacity: .75
+    }
+
+    .card .cej {
+      font-size: 10.5px;
+      letter-spacing: 1.5px;
+      margin-top: 6px;
+      opacity: .6;
+      text-transform: uppercase
+    }
+
+    /* escalas 3 opciones */
+    .scale {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px
+    }
+
+    .scale .opt {
+      border: 1.5px solid var(--negro);
+      border-radius: 999px;
+      padding: 9px 6px;
+      text-align: center;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+      transition: all .15s;
+      background: transparent;
+      color: var(--negro);
+      font-family: inherit;
+    }
+
+    .scale .opt:active {
+      transform: scale(.94)
+    }
+
+    .scale .opt.selected {
+      background: var(--negro);
+      color: var(--crema);
+      font-weight: 500;
+      animation: pop .3s ease
+    }
+
+    /* nav */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 34px
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 999px;
+      padding: 14px 34px;
+      cursor: pointer;
+      border: 1.5px solid var(--negro);
+      transition: all .15s;
+    }
+
+    .btn-next {
+      background: var(--negro);
+      color: var(--crema)
+    }
+
+    .btn-next:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(17, 17, 17, .25)
+    }
+
+    .btn-back {
+      background: transparent;
+      color: var(--negro)
+    }
+
+    .btn-back:hover {
+      background: rgba(17, 17, 17, .06)
+    }
+
+    .btn:disabled {
+      opacity: .5;
+      cursor: wait
+    }
+
+    .error-msg {
+      color: #b3261e;
+      font-size: 12.5px;
+      margin-top: 6px;
+      display: none
+    }
+
+    .field.invalid input,
+    .field.invalid textarea {
+      border-color: #b3261e
+    }
+
+    .field.invalid .error-msg {
+      display: block
+    }
+
+    /* éxito */
+    .success {
+      text-align: center;
+      padding: 60px 10px;
+      display: none;
+      animation: fade .4s ease
+    }
+
+    .success .big {
+      font-size: 52px;
+      display: inline-block;
+      animation: spinIn .8s cubic-bezier(.22, 1, .36, 1) both
+    }
+
+    .success h2 {
+      font-size: 30px;
+      margin: 14px 0 8px;
+      animation: slideUp .6s .3s cubic-bezier(.22, 1, .36, 1) both
+    }
+
+    .success p {
+      color: var(--gris);
+      font-weight: 300;
+      font-size: 14.5px;
+      animation: slideUp .6s .45s cubic-bezier(.22, 1, .36, 1) both
+    }
+
+    @keyframes spinIn {
+      from {
+        opacity: 0;
+        transform: rotate(-180deg) scale(.3)
+      }
+
+      to {
+        opacity: 1;
+        transform: rotate(0) scale(1)
+      }
+    }
+
+    footer {
+      background: var(--negro);
+      color: var(--crema);
+      text-align: center;
+      padding: 18px;
+      font-size: 11px;
+      letter-spacing: 2px;
+      font-weight: 300;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+
+    .otro-input {
+      margin-top: 10px;
+      display: none
+    }
+
+    .otro-input.visible {
+      display: block
+    }
+
+    /* ============ MOBILE ============ */
+    @media (max-width:600px) {
+      header {
+        padding: 16px 20px
+      }
+
+      .logo {
+        font-size: 18px
+      }
+
+      .tagline {
+        display: none
+      }
+
+      .wrap {
+        padding: 26px 18px 40px
+      }
+
+      .hero {
+        margin: 10px 0 26px
+      }
+
+      .hero .brand-title {
+        font-size: 26px
+      }
+
+      .hero p {
+        font-size: 12.5px
+      }
+
+      .step h2 {
+        font-size: 22px
+      }
+
+      .step .sub {
+        font-size: 12.5px;
+        margin-bottom: 20px
+      }
+
+      /* inputs más cómodos al tacto y sin zoom automático de iOS (16px) */
+      input[type=text],
+      input[type=email],
+      input[type=tel],
+      textarea {
+        font-size: 16px;
+        padding: 14px 16px;
+        border-radius: 12px;
+      }
+
+      .chip {
+        padding: 12px 18px;
+        font-size: 14px
+      }
+
+      .scale {
+        gap: 6px
+      }
+
+      .scale .opt {
+        padding: 11px 4px;
+        font-size: 12px
+      }
+
+      /* botones fijos abajo, siempre a mano */
+      .nav {
+        margin-top: 28px;
+        padding: 10px 0;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 15px 10px;
+        font-size: 15px
+      }
+
+      .btn-next {
+        box-shadow: 0 6px 20px rgba(17, 17, 17, .28)
+      }
+
+      footer {
+        position: static
+      }
+
+      body {
+        padding-bottom: 0
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<header>
-  <div class="logo">(al)<sup>2</sup>cuadrado</div>
-  <div class="tagline">BRANDING, SOCIAL MEDIA & WEB</div>
-</header>
+  <header>
+    <div class="logo">(al)<sup>2</sup>cuadrado</div>
+    <div class="tagline">BRANDING, SOCIAL MEDIA & WEB</div>
+  </header>
 
-<div class="wrap">
-  <div class="hero">
-    <div class="brand-title"><span class="bracket">[ CUESTIONARIO ]</span> ESTRATÉGICO</div>
-    <p>4 pasos rápidos · la mayoría es solo hacer click</p>
+  <div class="wrap">
+    <div class="hero">
+      <div class="brand-title"><span class="bracket">[ CUESTIONARIO ]</span> ESTRATÉGICO</div>
+      <p>4 pasos rápidos · la mayoría es solo hacer click</p>
+    </div>
+
+    <div class="progress" id="progressBox">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label"><span id="stepLabel">Paso 1 de 4 — Contacto</span><span id="stepPct">25%</span></div>
+    </div>
+
+    <form id="form" onsubmit="return false;">
+
+      <!-- ============ PASO 1: CONTACTO ============ -->
+      <section class="step active" data-step="1">
+        <h2><span class="ast">✱</span> Contacto</h2>
+        <p class="sub">Lo básico para poder escribirte.</p>
+
+        <div class="field req" data-name="Nombre completo">
+          <label class="q">Nombre completo *</label>
+          <input type="text" placeholder="Tu nombre y apellido">
+          <div class="error-msg">Necesitamos tu nombre.</div>
+        </div>
+        <div class="field req email" data-name="Email">
+          <label class="q">Email *</label>
+          <input type="email" placeholder="tu@email.com">
+          <div class="error-msg">Ingresá un email válido.</div>
+        </div>
+        <div class="field" data-name="Celular / WhatsApp">
+          <label class="q">Celular o WhatsApp <small>(opcional)</small></label>
+          <input type="tel" placeholder="+54 9 ...">
+        </div>
+        <div class="field" data-name="Ciudad / País">
+          <label class="q">Ciudad / País <small>(opcional)</small></label>
+          <input type="text" placeholder="Ej: Buenos Aires, Argentina">
+        </div>
+
+        <div class="field chips-field req-chips" data-name="Servicio que buscás" data-max="0">
+          <label class="q">¿Qué servicio buscás? * <small>(podés elegir varios)</small></label>
+          <div class="chips">
+            <button type="button" class="chip">Desarrollo web</button>
+            <button type="button" class="chip">Social Media</button>
+            <button type="button" class="chip">Branding</button>
+            <button type="button" class="chip">Diseño</button>
+            <button type="button" class="chip">Fotografía</button>
+            <button type="button" class="chip">Contenido / Podcast</button>
+            <button type="button" class="chip">Eventos</button>
+            <button type="button" class="chip">The Wedding Story</button>
+            <button type="button" class="chip chip-otro">Otro</button>
+          </div>
+          <input type="text" class="otro-input" placeholder="Contanos qué necesitás">
+          <div class="error-msg">Elegí al menos un servicio.</div>
+        </div>
+      </section>
+
+      <!-- ============ PASO 2: TU MARCA ============ -->
+      <section class="step" data-step="2">
+        <h2><span class="ast">✱</span> Tu marca</h2>
+        <p class="sub">El corazón de todo lo que vamos a crear.</p>
+
+        <div class="field req" data-name="Nombre de la marca">
+          <label class="q">Nombre de tu marca *</label>
+          <input type="text" placeholder="Ej: Nike">
+          <div class="error-msg">Contanos el nombre de tu marca.</div>
+        </div>
+
+        <div class="field req" data-name="Qué ofrece">
+          <label class="q">¿Qué productos o servicios ofrecés? *</label>
+          <textarea placeholder="Contanos brevemente qué vendés o hacés"></textarea>
+          <div class="error-msg">Este dato es clave para nosotros.</div>
+        </div>
+
+        <div class="field chips-field" data-name="Canales de venta" data-max="0">
+          <label class="q">¿Dónde vendés hoy? <small>(elegí los que apliquen)</small></label>
+          <div class="chips">
+            <button type="button" class="chip">Instagram</button>
+            <button type="button" class="chip">Página web</button>
+            <button type="button" class="chip">WhatsApp</button>
+            <button type="button" class="chip">Local físico</button>
+            <button type="button" class="chip">Marketplace</button>
+            <button type="button" class="chip">Todavía no vendo</button>
+          </div>
+        </div>
+
+        <div class="field" data-name="Dolor que soluciona">
+          <label class="q">¿Qué problema le resolvés a tu cliente? <small>(opcional pero valioso)</small></label>
+          <textarea placeholder="Ej: le ahorro tiempo, lo hace sentir seguro, le da estilo..."></textarea>
+        </div>
+
+        <div class="field chips-field" data-name="Valores de la marca" data-max="3">
+          <label class="q">Elegí hasta 3 valores que definan tu marca</label>
+          <div class="chips">
+            <button type="button" class="chip">Calidad</button>
+            <button type="button" class="chip">Cercanía</button>
+            <button type="button" class="chip">Innovación</button>
+            <button type="button" class="chip">Confianza</button>
+            <button type="button" class="chip">Diseño</button>
+            <button type="button" class="chip">Sustentabilidad</button>
+            <button type="button" class="chip">Excelencia</button>
+            <button type="button" class="chip">Comunidad</button>
+            <button type="button" class="chip">Pasión</button>
+            <button type="button" class="chip">Transparencia</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PASO 3: TU CLIENTE ============ -->
+      <section class="step" data-step="3">
+        <h2><span class="ast">✱</span> Tu cliente ideal</h2>
+        <p class="sub">Para saber a quién le hablamos.</p>
+
+        <div class="field chips-field req-chips" data-name="Edad del cliente" data-max="0">
+          <label class="q">Edad * <small>(podés elegir varios rangos)</small></label>
+          <div class="chips">
+            <button type="button" class="chip">18–24</button>
+            <button type="button" class="chip">25–34</button>
+            <button type="button" class="chip">35–44</button>
+            <button type="button" class="chip">45–54</button>
+            <button type="button" class="chip">55+</button>
+          </div>
+          <div class="error-msg">Elegí al menos un rango.</div>
+        </div>
+
+        <div class="field chips-field req-chips" data-name="Género del cliente" data-max="1">
+          <label class="q">Género *</label>
+          <div class="chips">
+            <button type="button" class="chip">Mujeres</button>
+            <button type="button" class="chip">Hombres</button>
+            <button type="button" class="chip">Todos</button>
+          </div>
+          <div class="error-msg">Elegí una opción.</div>
+        </div>
+
+        <div class="field chips-field" data-name="Estilo de vida del cliente" data-max="0">
+          <label class="q">¿Cómo es su estilo de vida? <small>(elegí lo que aplique)</small></label>
+          <div class="chips">
+            <button type="button" class="chip">Urbano</button>
+            <button type="button" class="chip">Familiar</button>
+            <button type="button" class="chip">Profesional</button>
+            <button type="button" class="chip">Deportivo</button>
+            <button type="button" class="chip">Creativo</button>
+            <button type="button" class="chip">Viajero</button>
+            <button type="button" class="chip">Estudiante</button>
+          </div>
+        </div>
+
+        <div class="field" data-name="Algo más del cliente ideal">
+          <label class="q">¿Algo más sobre tu cliente ideal? <small>(opcional)</small></label>
+          <textarea
+            placeholder="Marcas que le gustan, qué busca lograr, cómo esperás que sea su experiencia..."></textarea>
+        </div>
+
+        <div class="field" data-name="Competencia o marcas que inspiran">
+          <label class="q">Competencia o marcas que te inspiran <small>(opcional — nombres o @)</small></label>
+          <input type="text" placeholder="Ej: @marca1, @marca2, Nike...">
+        </div>
+      </section>
+
+      <!-- ============ PASO 4: DISEÑO ============ -->
+      <section class="step" data-step="4">
+        <h2><span class="ast">✱</span> Diseño</h2>
+        <p class="sub">Último paso, lo prometemos.</p>
+
+        <div class="field chips-field req-chips" data-name="Tipografías licenciadas" data-max="1">
+          <label class="q">¿La marca cuenta con tipografías licenciadas? *</label>
+          <div class="chips">
+            <button type="button" class="chip">Sí</button>
+            <button type="button" class="chip">No</button>
+          </div>
+          <div class="error-msg">Elegí una opción.</div>
+        </div>
+
+        <div class="field" data-name="Colores o elementos que SÍ">
+          <label class="q">¿Colores o elementos que te gustaría ver en la marca? <small>(opcional)</small></label>
+          <input type="text" placeholder="Ej: verde oliva, tipografía manuscrita, un sol...">
+        </div>
+
+        <div class="field" data-name="Colores o elementos que NO">
+          <label class="q">¿Algo que NO quieras ver bajo ningún punto? <small>(opcional)</small></label>
+          <input type="text" placeholder="Ej: rosa, comic sans, animales...">
+        </div>
+
+        <div class="field" data-name="Comentario final">
+          <label class="q">¿Algo más que quieras contarnos? <small>(opcional)</small></label>
+          <textarea placeholder="Historia de la marca, slogan, lo que quieras sumar"></textarea>
+        </div>
+      </section>
+
+      <!-- ============ NAV ============ -->
+      <div class="nav" id="nav">
+        <button type="button" class="btn btn-back" id="btnBack" style="visibility:hidden">← Anterior</button>
+        <button type="button" class="btn btn-next" id="btnNext">Siguiente →</button>
+      </div>
+    </form>
+
+    <!-- ============ ÉXITO ============ -->
+    <div class="success" id="success">
+      <div class="big logo" style="font-size: 38px;">(al)<sup style="font-size: 18px;">2</sup>cuadrado</div>
+      <h2>¡Recibido!</h2>
+      <p>Gracias por completar el cuestionario.<br>Te vamos a contactar muy pronto para crear con intención.</p>
+    </div>
   </div>
 
-  <div class="progress" id="progressBox">
-    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-    <div class="progress-label"><span id="stepLabel">Paso 1 de 4 — Contacto</span><span id="stepPct">25%</span></div>
-  </div>
+  <footer>(al)²cuadrado · BRANDING, SOCIAL MEDIA & WEB</footer>
 
-  <form id="form" onsubmit="return false;">
+  <script>
+    /* ==================================================
+       CONFIGURACIÓN — Web3Forms Access Key
+       ================================================== */
+    const WEB3FORMS_KEY = "6103c286-d5c2-4edd-82e7-23704915c2e7";
 
-  <!-- ============ PASO 1: CONTACTO ============ -->
-  <section class="step active" data-step="1">
-    <h2><span class="ast">✱</span> Contacto</h2>
-    <p class="sub">Lo básico para poder escribirte.</p>
+    const STEP_NAMES = ["Contacto", "Tu marca", "Tu cliente", "Diseño"];
+    let current = 1;
+    const TOTAL = 4;
 
-    <div class="field req" data-name="Nombre completo">
-      <label class="q">Nombre completo *</label>
-      <input type="text" placeholder="Tu nombre y apellido">
-      <div class="error-msg">Necesitamos tu nombre.</div>
-    </div>
-    <div class="field req email" data-name="Email">
-      <label class="q">Email *</label>
-      <input type="email" placeholder="tu@email.com">
-      <div class="error-msg">Ingresá un email válido.</div>
-    </div>
-    <div class="field" data-name="Celular / WhatsApp">
-      <label class="q">Celular o WhatsApp <small>(opcional)</small></label>
-      <input type="tel" placeholder="+54 9 ...">
-    </div>
-    <div class="field" data-name="Ciudad / País">
-      <label class="q">Ciudad / País <small>(opcional)</small></label>
-      <input type="text" placeholder="Ej: Buenos Aires, Argentina">
-    </div>
+    const steps = document.querySelectorAll('.step');
+    const fill = document.getElementById('progressFill');
+    const stepLabel = document.getElementById('stepLabel');
+    const stepPct = document.getElementById('stepPct');
+    const btnBack = document.getElementById('btnBack');
+    const btnNext = document.getElementById('btnNext');
 
-    <div class="field chips-field req-chips" data-name="Servicio que buscás" data-max="0">
-      <label class="q">¿Qué servicio buscás? * <small>(podés elegir varios)</small></label>
-      <div class="chips">
-        <button type="button" class="chip">Desarrollo web</button>
-        <button type="button" class="chip">Social Media</button>
-        <button type="button" class="chip">Branding</button>
-        <button type="button" class="chip">Diseño</button>
-        <button type="button" class="chip">Fotografía</button>
-        <button type="button" class="chip">Contenido / Podcast</button>
-        <button type="button" class="chip">Eventos</button>
-        <button type="button" class="chip">The Wedding Story</button>
-        <button type="button" class="chip chip-otro">Otro</button>
-      </div>
-      <input type="text" class="otro-input" placeholder="Contanos qué necesitás">
-      <div class="error-msg">Elegí al menos un servicio.</div>
-    </div>
-  </section>
-
-  <!-- ============ PASO 2: TU MARCA ============ -->
-  <section class="step" data-step="2">
-    <h2><span class="ast">✱</span> Tu marca</h2>
-    <p class="sub">El corazón de todo lo que vamos a crear.</p>
-
-    <div class="field req" data-name="Nombre de la marca">
-      <label class="q">Nombre de tu marca *</label>
-      <input type="text" placeholder="Ej: Nike">
-      <div class="error-msg">Contanos el nombre de tu marca.</div>
-    </div>
-
-    <div class="field req" data-name="Qué ofrece">
-      <label class="q">¿Qué productos o servicios ofrecés? *</label>
-      <textarea placeholder="Contanos brevemente qué vendés o hacés"></textarea>
-      <div class="error-msg">Este dato es clave para nosotros.</div>
-    </div>
-
-    <div class="field chips-field" data-name="Canales de venta" data-max="0">
-      <label class="q">¿Dónde vendés hoy? <small>(elegí los que apliquen)</small></label>
-      <div class="chips">
-        <button type="button" class="chip">Instagram</button>
-        <button type="button" class="chip">Página web</button>
-        <button type="button" class="chip">WhatsApp</button>
-        <button type="button" class="chip">Local físico</button>
-        <button type="button" class="chip">Marketplace</button>
-        <button type="button" class="chip">Todavía no vendo</button>
-      </div>
-    </div>
-
-    <div class="field" data-name="Dolor que soluciona">
-      <label class="q">¿Qué problema le resolvés a tu cliente? <small>(opcional pero valioso)</small></label>
-      <textarea placeholder="Ej: le ahorro tiempo, lo hace sentir seguro, le da estilo..."></textarea>
-    </div>
-
-    <div class="field chips-field" data-name="Valores de la marca" data-max="3">
-      <label class="q">Elegí hasta 3 valores que definan tu marca</label>
-      <div class="chips">
-        <button type="button" class="chip">Calidad</button>
-        <button type="button" class="chip">Cercanía</button>
-        <button type="button" class="chip">Innovación</button>
-        <button type="button" class="chip">Confianza</button>
-        <button type="button" class="chip">Diseño</button>
-        <button type="button" class="chip">Sustentabilidad</button>
-        <button type="button" class="chip">Excelencia</button>
-        <button type="button" class="chip">Comunidad</button>
-        <button type="button" class="chip">Pasión</button>
-        <button type="button" class="chip">Transparencia</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ PASO 3: TU CLIENTE ============ -->
-  <section class="step" data-step="3">
-    <h2><span class="ast">✱</span> Tu cliente ideal</h2>
-    <p class="sub">Para saber a quién le hablamos.</p>
-
-    <div class="field chips-field req-chips" data-name="Edad del cliente" data-max="0">
-      <label class="q">Edad * <small>(podés elegir varios rangos)</small></label>
-      <div class="chips">
-        <button type="button" class="chip">18–24</button>
-        <button type="button" class="chip">25–34</button>
-        <button type="button" class="chip">35–44</button>
-        <button type="button" class="chip">45–54</button>
-        <button type="button" class="chip">55+</button>
-      </div>
-      <div class="error-msg">Elegí al menos un rango.</div>
-    </div>
-
-    <div class="field chips-field req-chips" data-name="Género del cliente" data-max="1">
-      <label class="q">Género *</label>
-      <div class="chips">
-        <button type="button" class="chip">Mujeres</button>
-        <button type="button" class="chip">Hombres</button>
-        <button type="button" class="chip">Todos</button>
-      </div>
-      <div class="error-msg">Elegí una opción.</div>
-    </div>
-
-    <div class="field chips-field" data-name="Estilo de vida del cliente" data-max="0">
-      <label class="q">¿Cómo es su estilo de vida? <small>(elegí lo que aplique)</small></label>
-      <div class="chips">
-        <button type="button" class="chip">Urbano</button>
-        <button type="button" class="chip">Familiar</button>
-        <button type="button" class="chip">Profesional</button>
-        <button type="button" class="chip">Deportivo</button>
-        <button type="button" class="chip">Creativo</button>
-        <button type="button" class="chip">Viajero</button>
-        <button type="button" class="chip">Estudiante</button>
-      </div>
-    </div>
-
-    <div class="field" data-name="Algo más del cliente ideal">
-      <label class="q">¿Algo más sobre tu cliente ideal? <small>(opcional)</small></label>
-      <textarea placeholder="Marcas que le gustan, qué busca lograr, cómo esperás que sea su experiencia..."></textarea>
-    </div>
-
-    <div class="field" data-name="Competencia o marcas que inspiran">
-      <label class="q">Competencia o marcas que te inspiran <small>(opcional — nombres o @)</small></label>
-      <input type="text" placeholder="Ej: @marca1, @marca2, Nike...">
-    </div>
-  </section>
-
-  <!-- ============ PASO 4: DISEÑO ============ -->
-  <section class="step" data-step="4">
-    <h2><span class="ast">✱</span> Diseño</h2>
-    <p class="sub">Último paso, lo prometemos.</p>
-
-    <div class="field chips-field req-chips" data-name="Tipografías licenciadas" data-max="1">
-      <label class="q">¿La marca cuenta con tipografías licenciadas? *</label>
-      <div class="chips">
-        <button type="button" class="chip">Sí</button>
-        <button type="button" class="chip">No</button>
-      </div>
-      <div class="error-msg">Elegí una opción.</div>
-    </div>
-
-    <div class="field" data-name="Colores o elementos que SÍ">
-      <label class="q">¿Colores o elementos que te gustaría ver en la marca? <small>(opcional)</small></label>
-      <input type="text" placeholder="Ej: verde oliva, tipografía manuscrita, un sol...">
-    </div>
-
-    <div class="field" data-name="Colores o elementos que NO">
-      <label class="q">¿Algo que NO quieras ver bajo ningún punto? <small>(opcional)</small></label>
-      <input type="text" placeholder="Ej: rosa, comic sans, animales...">
-    </div>
-
-    <div class="field" data-name="Comentario final">
-      <label class="q">¿Algo más que quieras contarnos? <small>(opcional)</small></label>
-      <textarea placeholder="Historia de la marca, slogan, lo que quieras sumar"></textarea>
-    </div>
-  </section>
-
-  <!-- ============ NAV ============ -->
-  <div class="nav" id="nav">
-    <button type="button" class="btn btn-back" id="btnBack" style="visibility:hidden">← Anterior</button>
-    <button type="button" class="btn btn-next" id="btnNext">Siguiente →</button>
-  </div>
-  </form>
-
-  <!-- ============ ÉXITO ============ -->
-  <div class="success" id="success">
-    <div class="big">✱</div>
-    <h2>¡Recibido!</h2>
-    <p>Gracias por completar el cuestionario.<br>Te vamos a contactar muy pronto para crear con intención.</p>
-  </div>
-</div>
-
-<footer>(al)²cuadrado · BRANDING, SOCIAL MEDIA & WEB</footer>
-
-<script>
-/* ==================================================
-   CONFIGURACIÓN — Web3Forms Access Key
-   ================================================== */
-const WEB3FORMS_KEY = "6103c286-d5c2-4edd-82e7-23704915c2e7";
-
-const STEP_NAMES = ["Contacto","Tu marca","Tu cliente","Diseño"];
-let current = 1;
-const TOTAL = 4;
-
-const steps = document.querySelectorAll('.step');
-const fill = document.getElementById('progressFill');
-const stepLabel = document.getElementById('stepLabel');
-const stepPct = document.getElementById('stepPct');
-const btnBack = document.getElementById('btnBack');
-const btnNext = document.getElementById('btnNext');
-
-/* ---------- chips / cards / scales: toggle ---------- */
-document.querySelectorAll('.chips-field').forEach(field=>{
-  const max = parseInt(field.dataset.max||"0");
-  field.querySelectorAll('.chip').forEach(chip=>{
-    chip.addEventListener('click',()=>{
-      if(max===1){
-        field.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
-        chip.classList.add('selected');
-      }else{
-        if(!chip.classList.contains('selected') && max>0 &&
-           field.querySelectorAll('.chip.selected').length>=max) return;
-        chip.classList.toggle('selected');
-      }
-      if(chip.classList.contains('chip-otro')){
-        const otro=field.querySelector('.otro-input');
-        if(otro) otro.classList.toggle('visible',chip.classList.contains('selected'));
-      }
-      field.classList.remove('invalid');
+    /* ---------- chips / cards / scales: toggle ---------- */
+    document.querySelectorAll('.chips-field').forEach(field => {
+      const max = parseInt(field.dataset.max || "0");
+      field.querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          if (max === 1) {
+            field.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+            chip.classList.add('selected');
+          } else {
+            if (!chip.classList.contains('selected') && max > 0 &&
+              field.querySelectorAll('.chip.selected').length >= max) return;
+            chip.classList.toggle('selected');
+          }
+          if (chip.classList.contains('chip-otro')) {
+            const otro = field.querySelector('.otro-input');
+            if (otro) otro.classList.toggle('visible', chip.classList.contains('selected'));
+          }
+          field.classList.remove('invalid');
+        });
+      });
     });
-  });
-});
 
-document.querySelectorAll('.cards-field').forEach(field=>{
-  const max = parseInt(field.dataset.max||"2");
-  field.querySelectorAll('.card').forEach(card=>{
-    card.addEventListener('click',()=>{
-      if(!card.classList.contains('selected') &&
-         field.querySelectorAll('.card.selected').length>=max) return;
-      card.classList.toggle('selected');
-      field.classList.remove('invalid');
+    document.querySelectorAll('.cards-field').forEach(field => {
+      const max = parseInt(field.dataset.max || "2");
+      field.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('click', () => {
+          if (!card.classList.contains('selected') &&
+            field.querySelectorAll('.card.selected').length >= max) return;
+          card.classList.toggle('selected');
+          field.classList.remove('invalid');
+        });
+      });
     });
-  });
-});
 
-document.querySelectorAll('.scale').forEach(row=>{
-  row.querySelectorAll('.opt').forEach(opt=>{
-    opt.addEventListener('click',()=>{
-      row.querySelectorAll('.opt').forEach(o=>o.classList.remove('selected'));
-      opt.classList.add('selected');
+    document.querySelectorAll('.scale').forEach(row => {
+      row.querySelectorAll('.opt').forEach(opt => {
+        opt.addEventListener('click', () => {
+          row.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+        });
+      });
     });
-  });
-});
 
-/* ---------- navegación ---------- */
-function render(){
-  steps.forEach(s=>s.classList.toggle('active', parseInt(s.dataset.step)===current));
-  fill.style.width = (current/TOTAL*100)+'%';
-  stepLabel.textContent = `Paso ${current} de ${TOTAL} — ${STEP_NAMES[current-1]}`;
-  stepPct.textContent = Math.round(current/TOTAL*100)+'%';
-  btnBack.style.visibility = current===1 ? 'hidden':'visible';
-  btnNext.textContent = current===TOTAL ? 'Enviar ✱' : 'Siguiente →';
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-function validateStep(){
-  const stepEl = document.querySelector(`.step[data-step="${current}"]`);
-  let ok = true;
-  stepEl.querySelectorAll('.field.req').forEach(f=>{
-    const inp=f.querySelector('input,textarea');
-    let valid = inp.value.trim().length>0;
-    if(valid && f.classList.contains('email'))
-      valid=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inp.value.trim());
-    f.classList.toggle('invalid',!valid);
-    if(!valid) ok=false;
-  });
-  stepEl.querySelectorAll('.req-chips').forEach(f=>{
-    const any=f.querySelectorAll('.chip.selected').length>0;
-    f.classList.toggle('invalid',!any);
-    if(!any) ok=false;
-  });
-  stepEl.querySelectorAll('.req-cards').forEach(f=>{
-    const any=f.querySelectorAll('.card.selected').length>0;
-    f.classList.toggle('invalid',!any);
-    if(!any) ok=false;
-  });
-  return ok;
-}
-
-btnBack.addEventListener('click',()=>{ if(current>1){current--;render();} });
-btnNext.addEventListener('click',async ()=>{
-  if(!validateStep()){
-    const bad=document.querySelector('.field.invalid');
-    if(bad) bad.scrollIntoView({behavior:'smooth',block:'center'});
-    return;
-  }
-  if(current<TOTAL){ current++; render(); }
-  else{ await enviar(); }
-});
-
-/* ---------- recolección de datos ---------- */
-function recolectar(){
-  const data={};
-  document.querySelectorAll('.field').forEach(f=>{
-    const name=f.dataset.name;
-    if(!name) return;
-    if(f.classList.contains('chips-field')){
-      let vals=[...f.querySelectorAll('.chip.selected')].map(c=>c.textContent.trim());
-      const otro=f.querySelector('.otro-input');
-      if(otro && otro.value.trim()) vals=vals.map(v=>v==='Otro'?`Otro: ${otro.value.trim()}`:v);
-      if(vals.length) data[name]=vals.join(', ');
-    }else if(f.classList.contains('cards-field')){
-      const vals=[...f.querySelectorAll('.card.selected')].map(c=>c.querySelector('.cname').textContent.trim());
-      if(vals.length) data[name]=vals.join(' + ');
-    }else if(f.classList.contains('scales-field')){
-      const vals=[...f.querySelectorAll('.scale')].map(row=>{
-        const sel=row.querySelector('.opt.selected');
-        return sel? sel.textContent.trim(): null;
-      }).filter(Boolean);
-      if(vals.length) data[name]=vals.join(', ');
-    }else{
-      const inp=f.querySelector('input,textarea');
-      if(inp && inp.value.trim()) data[name]=inp.value.trim();
+    /* ---------- navegación ---------- */
+    function render() {
+      steps.forEach(s => s.classList.toggle('active', parseInt(s.dataset.step) === current));
+      fill.style.width = (current / TOTAL * 100) + '%';
+      stepLabel.textContent = `Paso ${current} de ${TOTAL} — ${STEP_NAMES[current - 1]}`;
+      stepPct.textContent = Math.round(current / TOTAL * 100) + '%';
+      btnBack.style.visibility = current === 1 ? 'hidden' : 'visible';
+      btnNext.textContent = current === TOTAL ? 'Enviar ✱' : 'Siguiente →';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  });
-  return data;
-}
 
-/* ---------- envío ---------- */
-async function enviar(){
-  const data = recolectar();
-  btnNext.disabled=true; btnNext.textContent='Enviando...';
-  const payload={
-    access_key: WEB3FORMS_KEY,
-    subject: `✱ Nuevo cuestionario estratégico — ${data['Nombre de la marca']||data['Nombre completo']||''}`,
-    from_name: 'Cuestionario Estratégico (al)²cuadrado',
-    ...data
-  };
-  try{
-    const res=await fetch('https://api.web3forms.com/submit',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Accept':'application/json'},
-      body:JSON.stringify(payload)
+    function validateStep() {
+      const stepEl = document.querySelector(`.step[data-step="${current}"]`);
+      let ok = true;
+      stepEl.querySelectorAll('.field.req').forEach(f => {
+        const inp = f.querySelector('input,textarea');
+        let valid = inp.value.trim().length > 0;
+        if (valid && f.classList.contains('email'))
+          valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inp.value.trim());
+        f.classList.toggle('invalid', !valid);
+        if (!valid) ok = false;
+      });
+      stepEl.querySelectorAll('.req-chips').forEach(f => {
+        const any = f.querySelectorAll('.chip.selected').length > 0;
+        f.classList.toggle('invalid', !any);
+        if (!any) ok = false;
+      });
+      stepEl.querySelectorAll('.req-cards').forEach(f => {
+        const any = f.querySelectorAll('.card.selected').length > 0;
+        f.classList.toggle('invalid', !any);
+        if (!any) ok = false;
+      });
+      return ok;
+    }
+
+    btnBack.addEventListener('click', () => { if (current > 1) { current--; render(); } });
+    btnNext.addEventListener('click', async () => {
+      if (!validateStep()) {
+        const bad = document.querySelector('.field.invalid');
+        if (bad) bad.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      if (current < TOTAL) { current++; render(); }
+      else { await enviar(); }
     });
-    const result=await res.json();
-    if(!result.success) throw new Error(result.message||'fail');
-    mostrarExito();
-  }catch(e){
-    /* Plan B: abre el correo con todo cargado */
-    const cuerpo=Object.entries(data).map(([k,v])=>`${k}:\n${v}`).join('\n\n');
-    window.location.href=`mailto:agustin.almiron@unab.edu.ar?subject=${encodeURIComponent('Cuestionario estratégico')}&body=${encodeURIComponent(cuerpo)}`;
-    mostrarExito();
-  }
-}
 
-function mostrarExito(){
-  document.getElementById('form').style.display='none';
-  document.getElementById('progressBox').style.display='none';
-  document.querySelector('.hero p').style.display='none';
-  document.getElementById('success').style.display='block';
-}
+    /* ---------- recolección de datos ---------- */
+    function recolectar() {
+      const data = {};
+      document.querySelectorAll('.field').forEach(f => {
+        const name = f.dataset.name;
+        if (!name) return;
+        if (f.classList.contains('chips-field')) {
+          let vals = [...f.querySelectorAll('.chip.selected')].map(c => c.textContent.trim());
+          const otro = f.querySelector('.otro-input');
+          if (otro && otro.value.trim()) vals = vals.map(v => v === 'Otro' ? `Otro: ${otro.value.trim()}` : v);
+          if (vals.length) data[name] = vals.join(', ');
+        } else if (f.classList.contains('cards-field')) {
+          const vals = [...f.querySelectorAll('.card.selected')].map(c => c.querySelector('.cname').textContent.trim());
+          if (vals.length) data[name] = vals.join(' + ');
+        } else if (f.classList.contains('scales-field')) {
+          const vals = [...f.querySelectorAll('.scale')].map(row => {
+            const sel = row.querySelector('.opt.selected');
+            return sel ? sel.textContent.trim() : null;
+          }).filter(Boolean);
+          if (vals.length) data[name] = vals.join(', ');
+        } else {
+          const inp = f.querySelector('input,textarea');
+          if (inp && inp.value.trim()) data[name] = inp.value.trim();
+        }
+      });
+      return data;
+    }
 
-render();
-</script>
+    /* ---------- envío ---------- */
+    async function enviar() {
+      const data = recolectar();
+      btnNext.disabled = true; btnNext.textContent = 'Enviando...';
+      const payload = {
+        access_key: WEB3FORMS_KEY,
+        subject: `✱ Nuevo cuestionario estratégico — ${data['Nombre de la marca'] || data['Nombre completo'] || ''}`,
+        from_name: 'Cuestionario Estratégico (al)²cuadrado',
+        ...data
+      };
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (!result.success) throw new Error(result.message || 'fail');
+        mostrarExito();
+      } catch (e) {
+        /* Plan B: abre el correo con todo cargado */
+        const cuerpo = Object.entries(data).map(([k, v]) => `${k}:\n${v}`).join('\n\n');
+        window.location.href = `mailto:agustin.almiron@unab.edu.ar?subject=${encodeURIComponent('Cuestionario estratégico')}&body=${encodeURIComponent(cuerpo)}`;
+        mostrarExito();
+      }
+    }
+
+    function mostrarExito() {
+      document.getElementById('form').style.display = 'none';
+      document.getElementById('progressBox').style.display = 'none';
+      document.querySelector('.hero p').style.display = 'none';
+      document.getElementById('success').style.display = 'block';
+    }
+
+    render();
+  </script>
 </body>
+
 </html>
