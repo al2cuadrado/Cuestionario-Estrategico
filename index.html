@@ -652,9 +652,10 @@
           <input type="email" placeholder="tu@email.com">
           <div class="error-msg">Ingresá un email válido.</div>
         </div>
-        <div class="field" data-name="Celular / WhatsApp">
-          <label class="q">Celular o WhatsApp <small>(opcional)</small></label>
+        <div class="field req tel" data-name="Celular / WhatsApp">
+          <label class="q">Celular o WhatsApp *</label>
           <input type="tel" placeholder="+54 9 ...">
+          <div class="error-msg">Ingresá un número de celular válido.</div>
         </div>
         <div class="field" data-name="Ciudad / País">
           <label class="q">Ciudad / País <small>(opcional)</small></label>
@@ -908,6 +909,8 @@
         let valid = inp.value.trim().length > 0;
         if (valid && f.classList.contains('email'))
           valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inp.value.trim());
+        if (valid && f.classList.contains('tel'))
+          valid = /^[\d\s\-\+\(\)]{8,}$/.test(inp.value.trim());
         f.classList.toggle('invalid', !valid);
         if (!valid) ok = false;
       });
